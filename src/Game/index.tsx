@@ -6,6 +6,8 @@ import { ICard } from '../types/ICard';
 import Hand from './Hand';
 import Table from './Table';
 
+import { isMoveValid } from '../utils/isMoveValid';
+
 const initialState: State = {
   state: 'SHUFFLING',
   deckId: '',
@@ -59,7 +61,8 @@ const Game = () => {
   }, [state, remaining, deckId]);
 
   const playCard = (card: ICard) => {
-    dispatch({ type: 'PLAY_CARD', payload: { card } });
+    if (isMoveValid(selected, card))
+      dispatch({ type: 'PLAY_CARD', payload: { card } });
   };
 
   const selectCard = (card: ICard) => {

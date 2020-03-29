@@ -1,7 +1,7 @@
 import { ICard } from '../types/ICard';
 
 export interface State {
-  state: 'SHUFFLING' | 'DEALING' | 'PLAYERS_TURN';
+  state: 'SHUFFLING' | 'DEALING' | 'PLAYERS_TURN' | 'AIS_TURN';
   deckId: string;
   remaining: number;
   table: ICard[];
@@ -70,9 +70,20 @@ export default (state: State, action: Actions): State => {
     case 'PLAY_CARD':
       return {
         ...state,
-        table: [...state.table, ...[action.payload.card]],
+        state: 'AIS_TURN',
+        selected: [],
+        table:
+          state.selected.length === 0
+            ? [...state.table, ...[action.payload.card]]
+            : state.table.filter(
+                card =>
+                  !state.selected.some(selected => selected.code === card.code)
+              ),
         human: {
-          ...state.human,
+          taken:
+            state.selected.length === 0
+              ? [...state.human.taken]
+              : [...state.human.taken, ...state.selected, action.payload.card],
           hand: state.human.hand.filter(
             card => card.code !== action.payload.card.code
           ),
