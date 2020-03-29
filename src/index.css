@@ -13,6 +13,7 @@ body {
   flex-direction: column;
   width: 100vw;
   height: 100vh;
+  overflow: hidden;
 }
 
 .table,
@@ -24,4 +25,26 @@ body {
 .table {
   flex: 1;
   align-items: center;
+}
+
+img {
+  width: 150px;
+  padding: 0 5px;
+  cursor: pointer;
+}
+
+.player.is-human > img {
+  position: relative;
+  top: 75px;
+}
+
+.player.is-human > img:hover {
+  top: 0;
+}
+
+.player.is-ai > img {
+  position: relative;
+  top: -75px;
+  filter: brightness(50%);
+  cursor: not-allowed;
 }

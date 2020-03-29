@@ -8,11 +8,11 @@ const initialState: State = {
   deckId: '',
   remaining: 0,
   table: [],
-  player1: {
+  human: {
     hand: [],
     taken: [],
   },
-  player2: {
+  ai: {
     hand: [],
     taken: [],
   },
@@ -20,7 +20,7 @@ const initialState: State = {
 
 const Game = () => {
   const [gameState, dispatch] = useReducer(reducer, initialState);
-  const { state, remaining, deckId, table, player1, player2 } = gameState;
+  const { state, remaining, deckId, table, human, ai } = gameState;
 
   useEffect(() => {
     const shuffle = async () => {
@@ -35,16 +35,16 @@ const Game = () => {
   useEffect(() => {
     const deal = async () => {
       const table = await dealCards(deckId, 4);
-      const player1 = await dealCards(deckId, 6);
-      const player2 = await dealCards(deckId, 6);
+      const human = await dealCards(deckId, 6);
+      const ai = await dealCards(deckId, 6);
 
       dispatch({
         type: 'DEALING_COMPLETE',
         payload: {
           table: table.cards,
-          player1: player1.cards,
-          player2: player2.cards,
-          remaining: player2.remaining,
+          human: human.cards,
+          ai: ai.cards,
+          remaining: ai.remaining,
         },
       });
     };
@@ -60,19 +60,19 @@ const Game = () => {
 
   return (
     <main className="game">
-      <section className="player">
-        {player1.hand.map(card => (
-          <div key={card.code}>{card.code}</div>
+      <section className="player is-ai">
+        {ai.hand.map(card => (
+          <img src={card.image} alt={card.code} key={card.code} />
         ))}
       </section>
       <section className="table">
         {table.map(card => (
-          <div key={card.code}>{card.code}</div>
+          <img src={card.image} alt={card.code} key={card.code} />
         ))}
       </section>
-      <section className="player">
-        {player2.hand.map(card => (
-          <div key={card.code}>{card.code}</div>
+      <section className="player is-human">
+        {human.hand.map(card => (
+          <img src={card.image} alt={card.code} key={card.code} />
         ))}
       </section>
     </main>

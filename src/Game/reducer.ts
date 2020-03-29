@@ -5,11 +5,11 @@ export interface State {
   deckId: string;
   remaining: number;
   table: Card[];
-  player1: {
+  human: {
     hand: Card[];
     taken: Card[];
   };
-  player2: {
+  ai: {
     hand: Card[];
     taken: Card[];
   };
@@ -24,8 +24,8 @@ type Actions =
       type: 'DEALING_COMPLETE';
       payload: {
         table: Card[];
-        player1: Card[];
-        player2: Card[];
+        human: Card[];
+        ai: Card[];
         remaining: number;
       };
     };
@@ -45,13 +45,13 @@ export default (state: State, action: Actions): State => {
         state: 'READY',
         remaining: action.payload.remaining,
         table: [...action.payload.table],
-        player1: {
-          ...state.player1,
-          hand: [...action.payload.player1],
+        human: {
+          ...state.human,
+          hand: [...action.payload.human],
         },
-        player2: {
-          ...state.player2,
-          hand: [...action.payload.player2],
+        ai: {
+          ...state.ai,
+          hand: [...action.payload.ai],
         },
       };
     default:
