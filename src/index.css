@@ -5,8 +5,23 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: url('./assets/images/pool_table.png');
+}
 
+.game {
+  display: flex;
+  flex-direction: column;
   width: 100vw;
   height: 100vh;
-  background: url('./assets/images/pool_table.png');
+}
+
+.table,
+.player {
+  display: flex;
+  justify-content: center;
+}
+
+.table {
+  flex: 1;
+  align-items: center;
 }
