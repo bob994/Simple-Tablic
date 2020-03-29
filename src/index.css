@@ -38,6 +38,10 @@ img {
   cursor: pointer;
 }
 
+img.is-selected {
+  opacity: 0.5;
+}
+
 .player.is-human > img {
   position: relative;
   top: 75px;

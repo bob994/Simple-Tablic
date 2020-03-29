@@ -5,6 +5,7 @@ export interface State {
   deckId: string;
   remaining: number;
   table: ICard[];
+  selected: ICard[];
   human: {
     hand: ICard[];
     taken: ICard[];
@@ -30,7 +31,13 @@ type Actions =
       };
     }
   | {
-      type: 'PLAY';
+      type: 'PLAY_CARD';
+      payload: {
+        card: ICard;
+      };
+    }
+  | {
+      type: 'SELECT_CARD';
       payload: {
         card: ICard;
       };
@@ -60,7 +67,7 @@ export default (state: State, action: Actions): State => {
           hand: [...action.payload.ai],
         },
       };
-    case 'PLAY':
+    case 'PLAY_CARD':
       return {
         ...state,
         table: [...state.table, ...[action.payload.card]],
@@ -70,6 +77,17 @@ export default (state: State, action: Actions): State => {
             card => card.code !== action.payload.card.code
           ),
         },
+      };
+    case 'SELECT_CARD':
+      return {
+        ...state,
+        selected: state.selected.find(
+          card => card.code === action.payload.card.code
+        )
+          ? state.selected.filter(
+              card => card.code !== action.payload.card.code
+            )
+          : [...state.selected, action.payload.card],
       };
     default:
       return state;

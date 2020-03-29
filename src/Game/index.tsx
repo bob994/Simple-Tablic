@@ -11,6 +11,7 @@ const initialState: State = {
   deckId: '',
   remaining: 0,
   table: [],
+  selected: [],
   human: {
     hand: [],
     taken: [],
@@ -23,7 +24,7 @@ const initialState: State = {
 
 const Game = () => {
   const [gameState, dispatch] = useReducer(reducer, initialState);
-  const { state, remaining, deckId, table, human, ai } = gameState;
+  const { state, remaining, deckId, table, selected, human, ai } = gameState;
 
   useEffect(() => {
     const shuffle = async () => {
@@ -57,10 +58,12 @@ const Game = () => {
     }
   }, [state, remaining, deckId]);
 
-  const playTurn = (card: ICard) => {
-    // Check is valid
+  const playCard = (card: ICard) => {
+    dispatch({ type: 'PLAY_CARD', payload: { card } });
+  };
 
-    dispatch({ type: 'PLAY', payload: { card } });
+  const selectCard = (card: ICard) => {
+    dispatch({ type: 'SELECT_CARD', payload: { card } });
   };
 
   if (state === 'SHUFFLING') return <>'Shuffling'</>;
@@ -71,9 +74,9 @@ const Game = () => {
     <main className="game">
       <Hand cards={ai.hand} isAi />
 
-      <Table cards={table} />
+      <Table cards={table} selectedCards={selected} onClick={selectCard} />
 
-      <Hand cards={human.hand} onClick={playTurn} />
+      <Hand cards={human.hand} onClick={playCard} />
     </main>
   );
 };
