@@ -1,4 +1,4 @@
-export interface Card {
+export interface ICard {
   image: string;
   value: string;
   suit: string;

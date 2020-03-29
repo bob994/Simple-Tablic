@@ -2,6 +2,9 @@ import React, { useEffect, useReducer } from 'react';
 import { startGame, dealCards } from '../domain/game';
 
 import reducer, { State } from './reducer';
+import { ICard } from '../types/ICard';
+import Hand from './Hand';
+import Table from './Table';
 
 const initialState: State = {
   state: 'SHUFFLING',
@@ -54,27 +57,23 @@ const Game = () => {
     }
   }, [state, remaining, deckId]);
 
+  const playTurn = (card: ICard) => {
+    // Check is valid
+
+    dispatch({ type: 'PLAY', payload: { card } });
+  };
+
   if (state === 'SHUFFLING') return <>'Shuffling'</>;
 
   if (state === 'DEALING') return <>'Dealing'</>;
 
   return (
     <main className="game">
-      <section className="player is-ai">
-        {ai.hand.map(card => (
-          <img src={card.image} alt={card.code} key={card.code} />
-        ))}
-      </section>
-      <section className="table">
-        {table.map(card => (
-          <img src={card.image} alt={card.code} key={card.code} />
-        ))}
-      </section>
-      <section className="player is-human">
-        {human.hand.map(card => (
-          <img src={card.image} alt={card.code} key={card.code} />
-        ))}
-      </section>
+      <Hand cards={ai.hand} isAi />
+
+      <Table cards={table} />
+
+      <Hand cards={human.hand} onClick={playTurn} />
     </main>
   );
 };

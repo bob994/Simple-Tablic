@@ -25,6 +25,11 @@ body {
 .table {
   flex: 1;
   align-items: center;
+  flex-wrap: wrap;
+}
+
+.player {
+  height: 220px;
 }
 
 img {

@@ -1,17 +1,17 @@
-import { Card } from '../types/Card';
+import { ICard } from '../types/ICard';
 
 export interface State {
-  state: 'SHUFFLING' | 'DEALING' | 'READY';
+  state: 'SHUFFLING' | 'DEALING' | 'PLAYERS_TURN';
   deckId: string;
   remaining: number;
-  table: Card[];
+  table: ICard[];
   human: {
-    hand: Card[];
-    taken: Card[];
+    hand: ICard[];
+    taken: ICard[];
   };
   ai: {
-    hand: Card[];
-    taken: Card[];
+    hand: ICard[];
+    taken: ICard[];
   };
 }
 
@@ -23,10 +23,16 @@ type Actions =
   | {
       type: 'DEALING_COMPLETE';
       payload: {
-        table: Card[];
-        human: Card[];
-        ai: Card[];
+        table: ICard[];
+        human: ICard[];
+        ai: ICard[];
         remaining: number;
+      };
+    }
+  | {
+      type: 'PLAY';
+      payload: {
+        card: ICard;
       };
     };
 
@@ -42,7 +48,7 @@ export default (state: State, action: Actions): State => {
     case 'DEALING_COMPLETE':
       return {
         ...state,
-        state: 'READY',
+        state: 'PLAYERS_TURN',
         remaining: action.payload.remaining,
         table: [...action.payload.table],
         human: {
@@ -52,6 +58,17 @@ export default (state: State, action: Actions): State => {
         ai: {
           ...state.ai,
           hand: [...action.payload.ai],
+        },
+      };
+    case 'PLAY':
+      return {
+        ...state,
+        table: [...state.table, ...[action.payload.card]],
+        human: {
+          ...state.human,
+          hand: state.human.hand.filter(
+            card => card.code !== action.payload.card.code
+          ),
         },
       };
     default:
