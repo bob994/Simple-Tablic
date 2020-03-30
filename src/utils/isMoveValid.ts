@@ -16,7 +16,10 @@ const isCardEqualToSum = (
     0
   );
 
-  if (sumAceAsOne === cardValueAceIsOne || sumAceAsOne === cardValueAceIsEleven)
+  if (
+    sumAceAsOne % cardValueAceIsOne === 0 ||
+    sumAceAsOne % cardValueAceIsEleven === 0
+  )
     return true;
 
   const selectedAceIsEleven = selectedCards.map(selected =>
@@ -29,8 +32,8 @@ const isCardEqualToSum = (
   );
 
   if (
-    sumAceAsEleven === cardValueAceIsOne ||
-    sumAceAsEleven === cardValueAceIsEleven
+    sumAceAsEleven % cardValueAceIsOne === 0 ||
+    sumAceAsEleven % cardValueAceIsEleven === 0
   )
     return true;
 
@@ -38,12 +41,12 @@ const isCardEqualToSum = (
 };
 
 export const isMoveValid = (
-  selectedCards: ICard[],
-  playedCard: ICard
+  playedCard: ICard,
+  selectedCards: ICard[]
 ): boolean => {
   if (selectedCards.length === 0) return true;
 
-  const selected = selectedCards.map(selected => selected.value);
+  const selected = selectedCards.map(s => s.value);
   const played = playedCard.value;
 
   if (isCardEqualToSum(played, selected)) return true;
@@ -52,7 +55,9 @@ export const isMoveValid = (
     const filtered = selected.filter(selected => selected !== played);
 
     if (isCardEqualToSum(played, filtered)) return true;
+
+    return false;
   }
 
-  return false;
+  return true;
 };

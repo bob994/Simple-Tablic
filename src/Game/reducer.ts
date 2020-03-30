@@ -24,7 +24,7 @@ type Actions =
   | {
       type: 'DEALING_COMPLETE';
       payload: {
-        table: ICard[];
+        table?: ICard[];
         human: ICard[];
         ai: ICard[];
         remaining: number;
@@ -57,7 +57,9 @@ export default (state: State, action: Actions): State => {
         ...state,
         state: 'PLAYERS_TURN',
         remaining: action.payload.remaining,
-        table: [...action.payload.table],
+        table: action.payload.table
+          ? [...action.payload.table]
+          : [...state.table],
         human: {
           ...state.human,
           hand: [...action.payload.human],
@@ -70,7 +72,7 @@ export default (state: State, action: Actions): State => {
     case 'PLAY_CARD':
       return {
         ...state,
-        state: 'AIS_TURN',
+        state: state.state === 'AIS_TURN' ? 'PLAYERS_TURN' : 'AIS_TURN',
         selected: [],
         table:
           state.selected.length === 0
@@ -79,15 +81,38 @@ export default (state: State, action: Actions): State => {
                 card =>
                   !state.selected.some(selected => selected.code === card.code)
               ),
-        human: {
-          taken:
-            state.selected.length === 0
-              ? [...state.human.taken]
-              : [...state.human.taken, ...state.selected, action.payload.card],
-          hand: state.human.hand.filter(
-            card => card.code !== action.payload.card.code
-          ),
-        },
+        human:
+          state.state === 'PLAYERS_TURN'
+            ? {
+                taken:
+                  state.selected.length === 0
+                    ? [...state.human.taken]
+                    : [
+                        ...state.human.taken,
+                        ...state.selected,
+                        action.payload.card,
+                      ],
+                hand: state.human.hand.filter(
+                  card => card.code !== action.payload.card.code
+                ),
+              }
+            : { ...state.human },
+        ai:
+          state.state === 'AIS_TURN'
+            ? {
+                taken:
+                  state.selected.length === 0
+                    ? [...state.ai.taken]
+                    : [
+                        ...state.ai.taken,
+                        ...state.selected,
+                        action.payload.card,
+                      ],
+                hand: state.ai.hand.filter(
+                  card => card.code !== action.payload.card.code
+                ),
+              }
+            : { ...state.ai },
       };
     case 'SELECT_CARD':
       return {
