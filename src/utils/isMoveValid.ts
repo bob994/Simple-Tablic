@@ -5,11 +5,11 @@ const isCardEqualToSum = (
   playedCard: string,
   selectedCards: string[]
 ): boolean => {
-  const cardValueAceIsOne = mapCardValueToNumber(playedCard, true);
+  const cardValueAceIsOne = mapCardValueToNumber(playedCard);
   const cardValueAceIsEleven = mapCardValueToNumber(playedCard, false);
 
   const selectedAceAsOne = selectedCards.map(selected =>
-    mapCardValueToNumber(selected, true)
+    mapCardValueToNumber(selected)
   );
   const sumAceAsOne = selectedAceAsOne.reduce(
     (prev, curr) => (prev += curr),

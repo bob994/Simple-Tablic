@@ -7,8 +7,6 @@ import Hand from './Hand';
 import Table from './Table';
 
 import { isMoveValid } from '../utils/isMoveValid';
-import { mapCardValueToNumber } from '../utils/mapCardValueToNumber';
-import { aiTurn } from '../utils/aiTurn';
 import { playTurn } from '../domain/ai';
 
 const initialState: State = {
@@ -78,55 +76,25 @@ const Game = () => {
 
   useEffect(() => {
     if (state === 'AIS_TURN') {
-      const response = playTurn(ai.hand, table);
+      const { card, combination } = playTurn(ai.hand, table);
 
-      const sortedValues = ai.hand
-        .map(card => mapCardValueToNumber(card.value, false))
-        .sort((a, b) => b - a);
-
-      let maxCard: number = 0;
-      let maxCombination: number[] = [];
-
-      sortedValues.forEach(x => {
-        const sortedTableValues = table
-          .map(card => mapCardValueToNumber(card.value, false))
-          .sort((a, b) => b - a)
-          .filter(card => card <= x);
-
-        const combo = aiTurn(sortedTableValues, x);
-
-        if (combo.length > maxCombination.length) {
-          maxCombination = [...combo];
-          maxCard = x;
-        }
-      });
-
-      if (maxCombination.length > 0) {
-        maxCombination.forEach(card => {
+      if (combination.length > 0) {
+        combination.forEach(card => {
           dispatch({
             type: 'SELECT_CARD',
             payload: {
-              card: table.find(c => mapCardValueToNumber(c.value) === card)!,
+              card: card,
             },
           });
         });
-
-        dispatch({
-          type: 'PLAY_CARD',
-          payload: {
-            card: ai.hand.find(c => mapCardValueToNumber(c.value) === maxCard)!,
-          },
-        });
-      } else {
-        dispatch({
-          type: 'PLAY_CARD',
-          payload: {
-            card: ai.hand.find(
-              c => mapCardValueToNumber(c.value) === sortedValues[0]
-            )!,
-          },
-        });
       }
+
+      dispatch({
+        type: 'PLAY_CARD',
+        payload: {
+          card: card,
+        },
+      });
     }
   }, [state, ai.hand, table]);
 

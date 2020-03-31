@@ -1,6 +1,6 @@
 export const mapCardValueToNumber = (
   value: string,
-  aceIsOne = false
+  aceIsOne = true
 ): number => {
   switch (value) {
     case 'KING':

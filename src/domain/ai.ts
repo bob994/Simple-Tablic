@@ -1,7 +1,6 @@
 import { ICard } from '../types/ICard';
 import { mapCardValueToNumber } from '../utils/mapCardValueToNumber';
-import { aiTurn } from '../utils/aiTurn';
-import { mapNumberToCardValue } from '../utils/mapNumberToCardValue';
+import { getBestCombination } from '../utils/getBestCombination';
 
 interface AiTurnReturnType {
   card: ICard;
@@ -9,31 +8,55 @@ interface AiTurnReturnType {
 }
 
 export const playTurn = (hand: ICard[], table: ICard[]): AiTurnReturnType => {
-  const handCards = mapAndSortDescCards(hand);
+  const handCards = sortDescCards(hand, false);
 
-  let maxCard = 0;
-  let maxCombination: number[] = [];
+  let maxCard: ICard | null = null;
+  let maxCombination: ICard[] = [];
 
   handCards.forEach(handCard => {
-    const tableCards = mapAndSortDescCards(table).filter(
-      card => card <= handCard
+    const filteredTable = table.filter(
+      table =>
+        mapCardValueToNumber(table.value, false) <=
+        mapCardValueToNumber(handCard.value, false)
     );
 
-    const combination = aiTurn(tableCards, handCard);
+    const tableCardsDesc = sortDescCards(filteredTable, false);
 
-    if (combination.length > maxCombination.length) {
+    const combinationDesc = getBestCombination(tableCardsDesc, handCard);
+
+    if (combinationDesc.length > maxCombination.length) {
       maxCard = handCard;
-      maxCombination = combination;
+      maxCombination = combinationDesc;
+    }
+
+    const tableCardsAsc = sortAscCards(filteredTable);
+
+    const combinationAsc = getBestCombination(tableCardsAsc, handCard);
+
+    if (combinationAsc.length > maxCombination.length) {
+      maxCard = handCard;
+      maxCombination = combinationAsc;
     }
   });
 
+  if (!maxCard) maxCard = handCards[0];
+
   return {
-    card: mapNumberToCardValue(maxCard),
-    combination: maxCombination.map(c => mapNumberToCardValue(c)),
+    card: maxCard,
+    combination: maxCombination,
   };
 };
 
-const mapAndSortDescCards = (cards: ICard[]): number[] =>
-  cards
-    .map(card => mapCardValueToNumber(card.value, false))
-    .sort((a, b) => b - a);
+const sortDescCards = (cards: ICard[], aceIsOne = true): ICard[] =>
+  cards.sort(
+    (a, b) =>
+      mapCardValueToNumber(b.value, aceIsOne) -
+      mapCardValueToNumber(a.value, aceIsOne)
+  );
+
+const sortAscCards = (cards: ICard[], aceIsOne = true): ICard[] =>
+  cards.sort(
+    (a, b) =>
+      mapCardValueToNumber(a.value, aceIsOne) -
+      mapCardValueToNumber(b.value, aceIsOne)
+  );
