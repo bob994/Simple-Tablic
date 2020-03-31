@@ -1,47 +1,119 @@
 import { ICard } from '../types/ICard';
+import { Actions, PlayCard, SelectCard, DealingComplete } from './actions';
 
-export interface State {
-  state: 'SHUFFLING' | 'DEALING' | 'PLAYERS_TURN' | 'AIS_TURN';
+export type AppState = 'SHUFFLING' | 'DEALING' | 'PLAYERS_TURN' | 'AIS_TURN';
+
+interface Taken {
+  playerCard: string;
+  selectedCards: string[];
+}
+
+interface State {
+  state: AppState;
   deckId: string;
   remaining: number;
   table: ICard[];
   selected: ICard[];
   human: {
     hand: ICard[];
-    taken: ICard[];
+    taken: Taken[];
   };
   ai: {
     hand: ICard[];
-    taken: ICard[];
+    taken: Taken[];
   };
 }
 
-type Actions =
-  | {
-      type: 'SHUFFLING_COMPLETE';
-      payload: { deckId: string; remaining: number };
+export const initialState: State = {
+  state: 'SHUFFLING',
+  deckId: '',
+  remaining: 0,
+  table: [],
+  selected: [],
+  human: {
+    hand: [],
+    taken: [],
+  },
+  ai: {
+    hand: [],
+    taken: [],
+  },
+};
+
+const deal = (state: State, action: DealingComplete): State => ({
+  ...state,
+  state: 'PLAYERS_TURN',
+  remaining: action.payload.remaining,
+  table: action.payload.table ? [...action.payload.table] : [...state.table],
+  human: {
+    ...state.human,
+    hand: [...action.payload.human],
+  },
+  ai: {
+    ...state.ai,
+    hand: [...action.payload.ai],
+  },
+});
+
+const playCard = (state: State, action: PlayCard): State => {
+  const isPlayersTurn = state.state === 'PLAYERS_TURN';
+
+  const editTable = () => {
+    if (state.selected.length === 0) {
+      return [...state.table, action.payload.card];
     }
-  | {
-      type: 'DEALING_COMPLETE';
-      payload: {
-        table?: ICard[];
-        human: ICard[];
-        ai: ICard[];
-        remaining: number;
-      };
-    }
-  | {
-      type: 'PLAY_CARD';
-      payload: {
-        card: ICard;
-      };
-    }
-  | {
-      type: 'SELECT_CARD';
-      payload: {
-        card: ICard;
-      };
+
+    return state.table.filter(
+      c => !state.selected.some(s => s.code === c.code)
+    );
+  };
+
+  const editHand = (player: 'human' | 'ai', isPlayersTurn: boolean) => {
+    if (isPlayersTurn && player === 'ai') return { ...state.ai };
+    if (!isPlayersTurn && player === 'human') return { ...state.human };
+
+    const taken = () => {
+      if (state.selected.length === 0) {
+        return [...state[player].taken];
+      }
+
+      return [
+        ...state[player].taken,
+        {
+          playerCard: action.payload.card.value,
+          selectedCards: [...state.selected.map(s => s.value)],
+        },
+      ];
     };
+
+    return {
+      taken: taken(),
+      hand: state[player].hand.filter(c => c.code !== action.payload.card.code),
+    };
+  };
+
+  return {
+    ...state,
+    state: isPlayersTurn ? 'AIS_TURN' : 'PLAYERS_TURN',
+    selected: [],
+    table: editTable(),
+    human: editHand('human', isPlayersTurn),
+    ai: editHand('ai', isPlayersTurn),
+  };
+};
+
+const selectCard = (state: State, action: SelectCard): State => {
+  const isSelected = state.selected.find(
+    c => c.code === action.payload.card.code
+  );
+
+  return {
+    ...state,
+    selected: isSelected
+      ? state.selected.filter(c => c.code !== action.payload.card.code)
+      : [...state.selected, action.payload.card],
+  };
+};
 
 export default (state: State, action: Actions): State => {
   switch (action.type) {
@@ -53,78 +125,11 @@ export default (state: State, action: Actions): State => {
         remaining: action.payload.remaining,
       };
     case 'DEALING_COMPLETE':
-      return {
-        ...state,
-        state: 'PLAYERS_TURN',
-        remaining: action.payload.remaining,
-        table: action.payload.table
-          ? [...action.payload.table]
-          : [...state.table],
-        human: {
-          ...state.human,
-          hand: [...action.payload.human],
-        },
-        ai: {
-          ...state.ai,
-          hand: [...action.payload.ai],
-        },
-      };
+      return deal(state, action);
     case 'PLAY_CARD':
-      return {
-        ...state,
-        state: state.state === 'AIS_TURN' ? 'PLAYERS_TURN' : 'AIS_TURN',
-        selected: [],
-        table:
-          state.selected.length === 0
-            ? [...state.table, ...[action.payload.card]]
-            : state.table.filter(
-                card =>
-                  !state.selected.some(selected => selected.code === card.code)
-              ),
-        human:
-          state.state === 'PLAYERS_TURN'
-            ? {
-                taken:
-                  state.selected.length === 0
-                    ? [...state.human.taken]
-                    : [
-                        ...state.human.taken,
-                        ...state.selected,
-                        action.payload.card,
-                      ],
-                hand: state.human.hand.filter(
-                  card => card.code !== action.payload.card.code
-                ),
-              }
-            : { ...state.human },
-        ai:
-          state.state === 'AIS_TURN'
-            ? {
-                taken:
-                  state.selected.length === 0
-                    ? [...state.ai.taken]
-                    : [
-                        ...state.ai.taken,
-                        ...state.selected,
-                        action.payload.card,
-                      ],
-                hand: state.ai.hand.filter(
-                  card => card.code !== action.payload.card.code
-                ),
-              }
-            : { ...state.ai },
-      };
+      return playCard(state, action);
     case 'SELECT_CARD':
-      return {
-        ...state,
-        selected: state.selected.find(
-          card => card.code === action.payload.card.code
-        )
-          ? state.selected.filter(
-              card => card.code !== action.payload.card.code
-            )
-          : [...state.selected, action.payload.card],
-      };
+      return selectCard(state, action);
     default:
       return state;
   }

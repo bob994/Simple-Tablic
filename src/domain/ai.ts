@@ -14,6 +14,10 @@ export const playTurn = (hand: ICard[], table: ICard[]): AiTurnReturnType => {
   let maxCombination: ICard[] = [];
 
   handCards.forEach(handCard => {
+    // For every card from hand, go through table cards
+    // Both sorted ASC and DESC
+    // Reason for this is possibiliy to have cards 6,6,4,2,2,2
+    // And best combination defers depending on direction my algoritham works
     const filteredTable = table.filter(
       table =>
         mapCardValueToNumber(table.value, false) <=

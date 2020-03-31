@@ -1,102 +1,34 @@
-import React, { useEffect, useReducer } from 'react';
-import { startGame, dealCards } from '../domain/game';
+import React, { useReducer, useEffect } from 'react';
 
-import reducer, { State } from './reducer';
+import reducer, { initialState } from './reducer';
 import { ICard } from '../types/ICard';
 import Hand from './Hand';
 import Table from './Table';
 
 import { isMoveValid } from '../utils/isMoveValid';
-import { playTurn } from '../domain/ai';
-
-const initialState: State = {
-  state: 'SHUFFLING',
-  deckId: '',
-  remaining: 0,
-  table: [],
-  selected: [],
-  human: {
-    hand: [],
-    taken: [],
-  },
-  ai: {
-    hand: [],
-    taken: [],
-  },
-};
+import { useDealer } from '../hooks/useDealer';
+import { useAi } from '../hooks/useAi';
+import { useStartGame } from '../hooks/useStartGame';
 
 const Game = () => {
   const [gameState, dispatch] = useReducer(reducer, initialState);
   const { state, remaining, deckId, table, selected, human, ai } = gameState;
 
+  const areOtherTurns =
+    state === 'PLAYERS_TURN' && human.hand.length === 0 && remaining > 0;
+  const isGameOver =
+    state === 'PLAYERS_TURN' && human.hand.length === 0 && remaining === 0;
+
+  useStartGame(dispatch);
+  useDealer(state, deckId, remaining, areOtherTurns, dispatch);
+  useAi(state, ai.hand, table, dispatch);
+
   useEffect(() => {
-    const shuffle = async () => {
-      const response = await startGame();
-
-      dispatch({ type: 'SHUFFLING_COMPLETE', payload: response });
-    };
-
-    shuffle();
-  }, []);
-
-  useEffect(() => {
-    const deal = async () => {
-      let table:
-        | {
-            cards: ICard[];
-            remaining: number;
-          }
-        | undefined;
-
-      if (remaining === 52) {
-        table = await dealCards(deckId, 4);
-      }
-
-      const human = await dealCards(deckId, 6);
-      const ai = await dealCards(deckId, 6);
-
-      dispatch({
-        type: 'DEALING_COMPLETE',
-        payload: {
-          table: table?.cards,
-          human: human.cards,
-          ai: ai.cards,
-          remaining: ai.remaining,
-        },
-      });
-    };
-
-    if (
-      state === 'DEALING' ||
-      (state === 'PLAYERS_TURN' && human.hand.length === 0 && remaining > 0)
-    ) {
-      deal();
+    if (isGameOver) {
+      console.log('Human', human.taken);
+      console.log('Ai', ai.taken);
     }
-  }, [state, remaining, deckId, human.hand]);
-
-  useEffect(() => {
-    if (state === 'AIS_TURN') {
-      const { card, combination } = playTurn(ai.hand, table);
-
-      if (combination.length > 0) {
-        combination.forEach(card => {
-          dispatch({
-            type: 'SELECT_CARD',
-            payload: {
-              card: card,
-            },
-          });
-        });
-      }
-
-      dispatch({
-        type: 'PLAY_CARD',
-        payload: {
-          card: card,
-        },
-      });
-    }
-  }, [state, ai.hand, table]);
+  }, [isGameOver, human.taken, ai.taken]);
 
   const playCard = (card: ICard) => {
     if (state !== 'PLAYERS_TURN') return;
